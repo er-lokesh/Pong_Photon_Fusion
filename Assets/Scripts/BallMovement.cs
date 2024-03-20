@@ -1,4 +1,5 @@
 using Fusion;
+using Fusion.Addons.Physics;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -14,18 +15,21 @@ public class BallMovement : NetworkBehaviour
     [SerializeField] private TMP_Text teamBScoreTxt;
 
     private int hitCounter;
-    private Rigidbody2D rb;
+    private NetworkRigidbody2D nrb;
+    //private Rigidbody2D rb;
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        nrb = GetComponent<NetworkRigidbody2D>();
+        //rb = GetComponent<Rigidbody2D>();
         Invoke("StartBall", 2f);
     }
 
     public override void FixedUpdateNetwork()
     {
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, initialSpeed + (speedIncrease * hitCounter)) * Runner.DeltaTime * ballSpeed;
+        nrb.Rigidbody.velocity = Vector2.ClampMagnitude(nrb.Rigidbody.velocity, initialSpeed + (speedIncrease * hitCounter));
+        //rb.velocity = Vector2.ClampMagnitude(rb.velocity, initialSpeed + (speedIncrease * hitCounter)) * Runner.DeltaTime * ballSpeed;
     }
 
     // Update is called once per frame
@@ -36,12 +40,12 @@ public class BallMovement : NetworkBehaviour
 
     private void StartBall()
     {
-        rb.velocity = new Vector2(-1, 0) * (initialSpeed + (speedIncrease * hitCounter));
+        nrb.Rigidbody.velocity = new Vector2(-1, 0) * (initialSpeed + (speedIncrease * hitCounter));
     }
 
     private void ResetBall()
     {
-        rb.velocity = Vector2.zero;
+        nrb.Rigidbody.velocity = Vector2.zero;
         transform.position = Vector2.zero;
         hitCounter = 0;
         Invoke("StartBall", 2f);
@@ -64,7 +68,7 @@ public class BallMovement : NetworkBehaviour
         if (yDirection == 0)
             yDirection = 0.25f;
 
-        rb.velocity = new Vector2(xDirection, yDirection) * (initialSpeed + (speedIncrease * hitCounter));
+        nrb.Rigidbody.velocity = new Vector2(xDirection, yDirection) * (initialSpeed + (speedIncrease * hitCounter));
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
