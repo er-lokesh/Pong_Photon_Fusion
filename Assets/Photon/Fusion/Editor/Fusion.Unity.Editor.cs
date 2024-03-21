@@ -11176,7 +11176,6 @@ namespace Fusion.Editor {
     [MenuItem("GameObject/Fusion/Scene/Setup Multi-Peer AudioListener Handling", false, FusionAssistants.PRIORITY + 1)]
     public static void HandleAudioListeners() {
       int count = 0;
-      //foreach (var listener in Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) {
       foreach (var listener in Object.FindObjectsOfType<AudioListener>(false)) {
         count++;
         listener.EnsureComponentHasVisibilityNode();
@@ -11188,10 +11187,10 @@ namespace Fusion.Editor {
     [MenuItem("GameObject/Fusion/Scene/Setup Multi-Peer Lights Handling", false, FusionAssistants.PRIORITY + 1)]
     public static void HandleLights() {
       int count = 0;
-      //foreach (var listener in Object.FindObjectOfType<Light>()) {
-      //  count++;
-      //  listener.EnsureComponentHasVisibilityNode();
-      //}
+      foreach (var listener in Object.FindObjectsOfType<Light>(false)) {
+        count++;
+        listener.EnsureComponentHasVisibilityNode();
+      }
       Debug.Log($"{count} {nameof(Light)}(s) found and given a {nameof(RunnerVisibilityLink)} component.");
     }
 
@@ -12438,7 +12437,6 @@ namespace Fusion.Editor {
         if (anyInstances) {
           menu.AddItem(selectInstancesContent, false, () => {
             var lookup = new HashSet<NetworkObjectTypeId>(selection.Select(x => NetworkObjectTypeId.FromPrefabId(x)));
-            //Selection.objects = FindObjectsByType<NetworkObject>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             Selection.objects = FindObjectsOfType<NetworkObject>(true)
              .Where(x => x.NetworkTypeId.IsValid && lookup.Contains(x.NetworkTypeId))
              .Select(x => x.gameObject)
@@ -13553,6 +13551,7 @@ namespace Fusion.Editor {
     }
 
     public static void FindActiveRunners(List<NetworkRunner> nonalloc) {
+      //var runners = Object.FindObjectsByType<NetworkRunner>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
       var runners = Object.FindObjectsOfType<NetworkRunner>(false);
       nonalloc.Clear();
       for (int i = 0; i < runners.Length; ++i) {

@@ -1,15 +1,15 @@
 using Fusion;
 using Fusion.Addons.Physics;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BallMovement : NetworkBehaviour
 {
     [SerializeField] private float ballSpeed = 1f;
     [SerializeField] private float initialSpeed = 10f;
     [SerializeField] private float speedIncrease = 0.25f;
+    [SerializeField] private SpriteRenderer ballImage;
 
     [SerializeField] private TMP_Text teamAScoreTxt;
     [SerializeField] private TMP_Text teamBScoreTxt;
@@ -19,11 +19,15 @@ public class BallMovement : NetworkBehaviour
     //private Rigidbody2D rb;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         nrb = GetComponent<NetworkRigidbody2D>();
         //rb = GetComponent<Rigidbody2D>();
-        Invoke("StartBall", 2f);
+    }
+
+    private void Start()
+    {
+        Invoke("StartBall", 2f);        
     }
 
     public override void FixedUpdateNetwork()
@@ -47,6 +51,7 @@ public class BallMovement : NetworkBehaviour
     {
         nrb.Rigidbody.velocity = Vector2.zero;
         transform.position = Vector2.zero;
+        ballImage.enabled = true;
         hitCounter = 0;
         Invoke("StartBall", 2f);
     }
@@ -61,10 +66,8 @@ public class BallMovement : NetworkBehaviour
         float xDirection, yDirection;
 
         xDirection = transform.position.x > 0 ? -1 : 1;
-
-        Debug.Log($"ballPos.y ->{ballPos.y - playerPos.y} , bound -> {myObject.GetComponent<Collider2D>().bounds.size.y}");
-
         yDirection = (ballPos.y - playerPos.y); // / myObject.GetComponent<Collider2D>().bounds.size.y;
+
         if (yDirection == 0)
             yDirection = 0.25f;
 
@@ -81,10 +84,12 @@ public class BallMovement : NetworkBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        ballImage.enabled = false;
         if(transform.position.x > 0)
             teamAScoreTxt.text = (int.Parse(teamAScoreTxt.text) + 1).ToString();
         else
             teamBScoreTxt.text = (int.Parse(teamBScoreTxt.text) + 1).ToString();
         ResetBall();
     }
+
 }

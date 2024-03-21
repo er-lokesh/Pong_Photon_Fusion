@@ -11,10 +11,8 @@ GameObject:
   - component: {fileID: 1863071619767593103}
   - component: {fileID: 8097160319190777524}
   - component: {fileID: 3205300684951652717}
-  - component: {fileID: 1380003894376622708}
-  - component: {fileID: 607276753899916796}
   m_Layer: 0
-  m_Name: Player 1
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -113,41 +111,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.2, y: 1.6}
   m_EdgeRadius: 0
---- !u!50 &1380003894376622708
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 811571639331086}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 1
-  m_Constraints: 5
---- !u!114 &607276753899916796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 811571639331086}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9749314bf605324bb02f682d4e640f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  movementSpeed: 7.5
-  ball: {fileID: 0}
 --- !u!1 &8487162291713088008
 GameObject:
   m_ObjectHideFlags: 0
@@ -159,6 +122,8 @@ GameObject:
   - component: {fileID: 2131061200568734287}
   - component: {fileID: 5247610360289653913}
   - component: {fileID: 5130539767550156350}
+  - component: {fileID: 5288053602477200400}
+  - component: {fileID: 4131119869775520636}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Untagged
@@ -200,6 +165,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 5130539767550156350}
+  - {fileID: 4131119869775520636}
 --- !u!114 &5130539767550156350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,5 +178,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75748ba53d591024f89ce0e283ee3d98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 7.5
-  rb: {fileID: 1380003894376622708}
+  factor: 10
+  movementSpeed: 25
+  nrb: {fileID: 4131119869775520636}
+--- !u!50 &5288053602477200400
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8487162291713088008}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 5
+--- !u!114 &4131119869775520636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8487162291713088008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e690b5fb1084f5ab1c86457af401d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncScale: 0
+  SyncParent: 1
+  _interpolationTarget: {fileID: 0}
+  UsePreciseRotation: 0
+  UseRenderSleepThresholds: 1
+  RenderThresholds:
+    UseEnergy: 1
+    Position: 0.01
+    Rotation: 0.01
+    Scale: 0.01
