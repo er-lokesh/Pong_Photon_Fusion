@@ -50,7 +50,8 @@ public class BallMovement : NetworkBehaviour
     private void ResetBall()
     {
         nrb.Rigidbody.velocity = Vector2.zero;
-        transform.position = Vector2.zero;
+        nrb.RBPosition = Vector2.zero;
+        //transform.position = Vector2.zero;
         ballImage.enabled = true;
         hitCounter = 0;
         Invoke("StartBall", 2f);
