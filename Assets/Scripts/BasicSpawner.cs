@@ -165,7 +165,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             _spawnedCharacters.Add(player, networkPlayerObject);
         }
 
-        //if (_spawnedCharacters.Count == Utils.GetMaxPlayers())
+        if (_spawnedCharacters.Count == Utils.GetMaxPlayers())
             FindObjectOfType<PingPongManager>().SetReady();
     }
 

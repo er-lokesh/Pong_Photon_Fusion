@@ -13,6 +13,6 @@ public class Utils
 
     public static int GetMaxPlayers()
     {
-        return 2;
+        return 4;
     }
 }
