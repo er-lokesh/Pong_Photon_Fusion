@@ -8,8 +8,11 @@ public class Utils
 
     public static Vector3 GetSpawnPoint(int index)
     {
-        // Todo : if x contain some
-
         return new Vector3(xPos[index], 0f, 0f);
+    }
+
+    public static int GetMaxPlayers()
+    {
+        return 2;
     }
 }

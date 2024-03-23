@@ -3,6 +3,7 @@ using Fusion.Sockets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,14 +12,33 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private NetworkPrefabRef _playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
-    private NetworkRunner _runner;
+    private NetworkRunner runner;
+    SessionListUIHandler sessionListUIHandler;
 
-    async void StartGame(GameMode mode)
+    private void Awake()
     {
-        // Create the Fusion runner and let it know that we will be providing user input
-        _runner = gameObject.AddComponent<NetworkRunner>();
-        _runner.ProvideInput = true;
+        NetworkRunner networkRunner = FindObjectOfType<NetworkRunner>();
+        sessionListUIHandler = FindObjectOfType<SessionListUIHandler>(true);
+        if (networkRunner != null)
+            runner = networkRunner;
+    }
 
+    private void Start()
+    {
+        if(runner == null)
+        {
+            // Create the Fusion runner and let it know that we will be providing user input
+            runner = gameObject.AddComponent<NetworkRunner>();
+            runner.ProvideInput = true;
+
+            if(SceneManager.GetActiveScene().name != "Menu")
+                StartGame(GameMode.AutoHostOrClient, "TestSession");
+        }
+    }
+
+    async Task StartGame(GameMode mode, string sessionName)
+    {
+        
         // Create the NetworkSceneInfo from the current scene
         //var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex + 1);
         //var sceneInfo = new NetworkSceneInfo();
@@ -28,29 +48,57 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         //}
 
         // Start or join (depends on gamemode) a session with a specific name
-        await _runner.StartGame(new StartGameArgs()
+        await runner.StartGame(new StartGameArgs()
         {
             GameMode = mode,
-            SessionName = "TestRoom",
+            SessionName = sessionName,
+            CustomLobbyName = "OurLobbyId",
+            PlayerCount = Utils.GetMaxPlayers(),
             Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex + 1),
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
     }
 
-    private void OnGUI()
+    public void OnJoinLobby()
     {
-        if (_runner == null)
-        {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-            {
-                StartGame(GameMode.Host);
-            }
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-            {
-                StartGame(GameMode.Client);
-            }
-        }
+        var clientTask = JoinLobby();
     }
+
+    private async Task JoinLobby()
+    {
+        string lobbyId = "OurLobbyId";
+        var result = await runner.JoinSessionLobby(SessionLobby.Custom, lobbyId);
+
+        if (!result.Ok)
+            Debug.LogError($"Unable to join lobby {lobbyId}");
+        else
+            Debug.Log("Join Lobby OK");
+    }
+
+    public void CreateGame(string sessionName)
+    {
+        var clientTask = StartGame(GameMode.Host, sessionName);
+    }
+    
+    public void JoinGame(SessionInfo sessionInfo)
+    {
+        var clientTask = StartGame(GameMode.Client, sessionInfo.Name);
+    }
+
+    //private void OnGUI()
+    //{
+    //    if (_runner == null)
+    //    {
+    //        if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
+    //        {
+    //            StartGame(GameMode.Host);
+    //        }
+    //        if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
+    //        {
+    //            StartGame(GameMode.Client);
+    //        }
+    //    }
+    //}
 
     public void OnConnectedToServer(NetworkRunner runner)
     {
@@ -59,7 +107,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
     {
-        
+        SceneManager.LoadScene(0);
     }
 
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
@@ -74,7 +122,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
-        
+        SceneManager.LoadScene(0);
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
@@ -116,6 +164,9 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             // Keep track of the player avatars for easy access
             _spawnedCharacters.Add(player, networkPlayerObject);
         }
+
+        //if (_spawnedCharacters.Count == Utils.GetMaxPlayers())
+            FindObjectOfType<PingPongManager>().SetReady();
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -124,6 +175,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         {
             runner.Despawn(networkObject);
             _spawnedCharacters.Remove(player);
+            SceneManager.LoadScene(0);
         }
     }
 
@@ -149,12 +201,24 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        
+        if (sessionList == null) return;
+
+        if (sessionList.Count == 0)
+            sessionListUIHandler.OnNoSessionsFound();
+        else
+        {
+            sessionListUIHandler.ClearList();
+            foreach(SessionInfo sessionInfo in sessionList)
+            {
+                sessionListUIHandler.AddToList(sessionInfo);
+                Debug.Log($"Found session {sessionInfo.Name} player count : {sessionInfo.PlayerCount}");
+            }
+        }
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-        
+        SceneManager.LoadScene(0);
     }
 
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)

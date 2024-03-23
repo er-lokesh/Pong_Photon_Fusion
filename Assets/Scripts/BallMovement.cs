@@ -1,60 +1,44 @@
 using Fusion;
-using Fusion.Addons.Physics;
-using TMPro;
+using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class BallMovement : NetworkBehaviour
 {
-    [SerializeField] private float ballSpeed = 1f;
+    [SerializeField] private float startDelay = 1f;
     [SerializeField] private float initialSpeed = 10f;
     [SerializeField] private float speedIncrease = 0.25f;
     [SerializeField] private SpriteRenderer ballImage;
 
-    [SerializeField] private TMP_Text teamAScoreTxt;
-    [SerializeField] private TMP_Text teamBScoreTxt;
-
     private int hitCounter;
-    private NetworkRigidbody2D nrb;
-    //private Rigidbody2D rb;
+    private Rigidbody2D rb;
+    public float startAngle = 45f;
 
-    // Start is called before the first frame update
-    void Awake()
+    public override void Spawned()
     {
-        nrb = GetComponent<NetworkRigidbody2D>();
-        //rb = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
+        StartCoroutine(WaitForSpawn());
     }
 
-    private void Start()
+    private IEnumerator WaitForSpawn()
     {
-        Invoke("StartBall", 2f);        
-    }
+        rb.velocity = Vector2.zero;
+        rb.position = Vector2.zero;
 
-    public override void FixedUpdateNetwork()
-    {
-        nrb.Rigidbody.velocity = Vector2.ClampMagnitude(nrb.Rigidbody.velocity, initialSpeed + (speedIncrease * hitCounter));
-        //rb.velocity = Vector2.ClampMagnitude(rb.velocity, initialSpeed + (speedIncrease * hitCounter)) * Runner.DeltaTime * ballSpeed;
-    }
-
-    // Update is called once per frame
-    //void Update()
-    //{
-    //    rb.velocity = Vector2.ClampMagnitude(rb.velocity, initialSpeed + (speedIncrease * hitCounter));
-    //}
-
-    private void StartBall()
-    {
-        nrb.Rigidbody.velocity = new Vector2(-1, 0) * (initialSpeed + (speedIncrease * hitCounter));
-    }
-
-    private void ResetBall()
-    {
-        nrb.Rigidbody.velocity = Vector2.zero;
-        nrb.RBPosition = Vector2.zero;
-        //transform.position = Vector2.zero;
+        yield return new WaitForSeconds(startDelay / 2);
         ballImage.enabled = true;
-        hitCounter = 0;
-        Invoke("StartBall", 2f);
+        yield return new WaitForSeconds(startDelay / 2);
+        rb.velocity = new Vector2(-1, 0) * (initialSpeed + (speedIncrease * hitCounter));
+    }
+
+    public void UpdateRBSpeed()
+    {
+        rb.velocity = Vector2.ClampMagnitude(rb.velocity, initialSpeed + (speedIncrease * hitCounter)); // * speed;
+    }
+
+    private void Update()
+    {
+        if (rb.velocity.magnitude > 0)
+            UpdateRBSpeed();
     }
 
     private void PlayerBounce(Transform myObject)
@@ -72,7 +56,7 @@ public class BallMovement : NetworkBehaviour
         if (yDirection == 0)
             yDirection = 0.25f;
 
-        nrb.Rigidbody.velocity = new Vector2(xDirection, yDirection) * (initialSpeed + (speedIncrease * hitCounter));
+        rb.velocity = new Vector2(xDirection, yDirection) * (initialSpeed + (speedIncrease * hitCounter));
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -81,16 +65,11 @@ public class BallMovement : NetworkBehaviour
         {
             PlayerBounce(collision.transform);
         }
+        else if (collision.transform.TryGetComponent(out AddPoints addPoints))
+        {
+            addPoints.OnHit?.Invoke();
+            ballImage.enabled = false;
+            StartCoroutine(WaitForSpawn());
+        }
     }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        ballImage.enabled = false;
-        if(transform.position.x > 0)
-            teamAScoreTxt.text = (int.Parse(teamAScoreTxt.text) + 1).ToString();
-        else
-            teamBScoreTxt.text = (int.Parse(teamBScoreTxt.text) + 1).ToString();
-        ResetBall();
-    }
-
 }
